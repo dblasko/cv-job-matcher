@@ -5,41 +5,45 @@ import faiss
 import pickle
 import numpy as np
 from langchain.embeddings import HuggingFaceEmbeddings
-from dotenv import load_dotenv
+
+# from dotenv import load_dotenv
+
 
 class JobMatching:
-
     def __init__(self, embeddings: HuggingFaceEmbeddings):
-        self.embeddings = embeddings
-        load_dotenv()  # Load environment variables from .env file
+        self.embedder = HuggingFaceEmbeddings()
+        # load_dotenv()  # Load environment variables from .env file
+        self.embeddings = None
+        self.index = None
+        self.strings = None
 
     def parse_xml(self, xml_file):
         tree = ET.parse(xml_file)
         root = tree.getroot()
 
         jobs_list = []
-        for job in root.findall('job'):
+        for job in root.findall("job"):
             job_dict = {
-            "title": job.find('title').text,
-            "company": job.find('company').text,
-            "posted_date": job.find('posted_date').text,
-            "job_reference": job.find('job_reference').text,
-            "req_number": job.find('req_number').text,
-            "url": job.find('url').text,
-            "body": job.find('body').text,
-            "city": job.find('city').text,
-            "state": job.find('state').text,
-            "country": job.find('country').text,
-            "location": job.find('location').text,
-            "function": job.find('function').text,
-            "logo": job.find('logo').text,
-            "jobtype": job.find('jobtype').text,
-            "education": job.find('education').text,
-            "experience": job.find('experience').text,
-            "salary": job.find('salary').text,
-            "requiredlanguages": job.find('requiredlanguages').text,
-            "requiredskills": job.find('requiredskills').text
-        }
+                "title": job.find("title").text,
+                "company": job.find("company").text,
+                "posted_date": job.find("posted_date").text,
+                "job_reference": job.find("job_reference").text,
+                "req_number": job.find("req_number").text,
+                "url": job.find("url").text,
+                "body": job.find("body").text,
+                "city": job.find("city").text,
+                "state": job.find("state").text,
+                "country": job.find("country").text,
+                "location": job.find("location").text,
+                "function": job.find("function").text,
+                "logo": job.find("logo").text,
+                "jobtype": job.find("jobtype").text,
+                "education": job.find("education").text,
+                "experience": job.find("experience").text,
+                "salary": job.find("salary").text,
+                "requiredlanguages": job.find("requiredlanguages").text,
+                "requiredskills": job.find("requiredskills").text,
+            }
             jobs_list.append(job_dict)
 
         return jobs_list
@@ -48,11 +52,11 @@ class JobMatching:
         jobs_list = self.parse_xml(xml_file)
         json_output = json.dumps(jobs_list, indent=4)
 
-        with open(json_output_file, 'w') as json_file:
+        with open(json_output_file, "w") as json_file:
             json_file.write(json_output)
 
     def create_embeddings(self, json_file):
-        with open(json_file, 'r') as f:
+        with open(json_file, "r") as f:
             data = json.load(f)
 
         strings = []
@@ -60,20 +64,29 @@ class JobMatching:
             string = json.dumps(obj)
             strings.append(string)
 
-        doc_result = self.embeddings.embed_documents(strings)
+        doc_result = self.embedder.embed_documents(strings)
 
         index = faiss.index_factory(len(doc_result[0]), "Flat")
         index.train(doc_result)
         index.add(doc_result)
+        self.index = index
 
         return index, strings
 
-    def match_jobs(self, index, strings, query, k=5):
-        query_result = self.embeddings.embed_query(query)
-        distances, neighbors = index.search(query_result.reshape(1,-1).astype(np.float32), k)
+    def create_embedding_index(self):
+        index = faiss.index_factory(len(self.embeddings[0]), "Flat")
+        index.train(self.embeddings)
+        index.add(self.embeddings)
+        self.index = index
 
-        for neighbor in neighbors[0]:
-            print(strings[neighbor])
+    def match_jobs(self, query, k=5):
+        query_result = self.embedder.embed_query(query)
+        query_result = np.array(query_result)
+        distances, neighbors = self.index.search(
+            query_result.reshape(1, -1).astype(np.float32), k
+        )
+
+        return (distances, [self.strings[neighbor] for neighbor in neighbors[0]])
 
     def save_embeddings(
         self,
@@ -81,7 +94,6 @@ class JobMatching:
         saving_embeddings_file_name: str = os.getenv("SAVING_EMBEDDINGS_FILE_NAME"),
         saving_embeddings_directory: str = os.getenv("SAVING_EMBEDDINGS_DIRECTORY"),
     ) -> None:
-
         directory = os.path.join(os.getcwd(), saving_embeddings_directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -92,8 +104,13 @@ class JobMatching:
             pickle.dump(embeddings, f)
 
     def load_embeddings(self, embeddings_path) -> HuggingFaceEmbeddings:
-
+        print("CALLED")
         with open(embeddings_path, "rb") as f:
             embeddings: HuggingFaceEmbeddings = pickle.load(f)
 
-        return embeddings
+        print(type(embeddings))
+        self.embeddings = embeddings
+
+        with open("job_description_embedding/job_openings.json", "r") as f:
+            strings = json.load(f)
+        self.strings = strings

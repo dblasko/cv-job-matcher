@@ -1,33 +1,26 @@
 import streamlit as st
 from streamlit_lottie import st_lottie_spinner, st_lottie
 import time
+import json
 import requests
+import job_description_embedding.notebooks.JobMatching as JobMatching
 
 LAYOUT_WIDE = False
+
+
+@st.cache_resource
+def prepare_matching_engine():
+    job_matching_engine = JobMatching.JobMatching(None)
+    job_matching_engine.load_embeddings(
+        "job_description_embedding/embeddings/saved_embeddings.pkl"
+    )
+    job_matching_engine.create_embedding_index()
+    return job_matching_engine
 
 
 # Dummy functions for parsing and matching. You can replace them with your actual implementations.
 def parse_pdf(file):
     return "Parsed CV content"
-
-
-def match_jobs(parsed_cv):
-    job_offers = [
-        {
-            "title": "Software Engineer",
-            "content": "We are looking for a software engineer...",
-            "match_percentage": 90,
-            "comments": ["Good programming skills", "Strong experience"],
-        },
-        {
-            "title": "Software Engineer",
-            "content": "We are looking for a software engineer...",
-            "match_percentage": 80,
-            "comments": ["Good programming skills", "Strong experience"],
-        },
-        # Add more job offers here
-    ]
-    return job_offers
 
 
 def load_lottieurl(url: str):
@@ -68,7 +61,7 @@ def main():
             "Minimum match percentage to consider",
             min_value=0,
             max_value=100,
-            value=50,
+            value=25,
             step=5,
         )
 
@@ -82,10 +75,16 @@ def main():
                 loading_text = st.empty()
                 loading_text.write("*Matching your CV to offers ...*")
 
-            time.sleep(2)  # Simulate processing time
+            job_matching_engine = prepare_matching_engine()
+            distances, job_offers = job_matching_engine.match_jobs(
+                "Software engineer", k=1000
+            )
+            scores = [distance for distance in distances[0]]
+            # Normalize scores to be between 0 and 100
+            scores = [100 * (1 - score / max(scores)) for score in scores]
+
             parsed_cv = parse_pdf(uploaded_file)
 
-            job_offers = match_jobs(parsed_cv)
             expander = cv_parsed_holder.expander(
                 label=f"💡 **Transparency notice**: this is the information we have extracted from your CV.",
                 expanded=False,
@@ -113,8 +112,8 @@ def main():
 
         job_offers_filtered = [
             offer
-            for offer in job_offers
-            if offer["match_percentage"] >= match_threshold
+            for idx, offer in enumerate(job_offers)
+            if scores[idx] >= match_threshold
         ]
         if not job_offers_filtered:
             st.warning(
@@ -125,14 +124,24 @@ def main():
 
             for index, offer in enumerate(job_offers_filtered):
                 expander = st.expander(
-                    label=f"{offer['title']} ({offer['match_percentage']}% match)",
+                    label=f"{offer['title']} ({round(scores[index],1)}% match)",
                     expanded=False,
                 )
                 with expander:
-                    st.write(offer["content"])
-                    st.subheader("Match score: " + str(offer["match_percentage"]))
-                    st.subheader("Comments:")
-                    st.write("\n".join(offer["comments"]))
+                    st.markdown(
+                        f"""
+                    ### {offer['title']}
+                    #### General information
+                    - **Company**: {offer['company']}
+                    - **Function**: {offer['function']}
+                    - **Job type**: {offer['jobtype']}
+                    - **Location**: {offer['location']}, {offer['country']}
+                    - **Posted date**: {offer['posted_date']}
+                    - [**Posting URL**]({offer['url']})   
+                    #### Original content
+                    """
+                    )
+                    st.write(offer["body"], unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
