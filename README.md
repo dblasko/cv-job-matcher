@@ -2,7 +2,12 @@
 IR-driven job matching based on your CV.
 
 ## Setting up the dependencies
+`brew install pkg-config poppler python` + Python deps.
 
+You need to provide a valid OpenAI key in a `key.yaml` file at the root of the project. It should have the following form:
+```yaml
+openai_key: <your key here>
+```
 
 ## Starting the demo application
 A web-based interface is bundled with the project. To use it, after setting up the dependencies, execute the following command from the project root directory:

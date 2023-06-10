@@ -2,8 +2,10 @@ import streamlit as st
 from streamlit_lottie import st_lottie_spinner, st_lottie
 import time
 import json
+import yaml
 import requests
 import job_description_embedding.JobMatching as JobMatching
+import cv_parsing.ResumeParser as ResumeParser
 
 LAYOUT_WIDE = False
 
@@ -18,9 +20,17 @@ def prepare_matching_engine():
     return job_matching_engine
 
 
+def load_openai_key():
+    with open("key.yaml", "r") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+        return config["openai_key"]
+
+
 # Dummy functions for parsing and matching. You can replace them with your actual implementations.
 def parse_pdf(file):
-    return "Parsed CV content"
+    parser = ResumeParser.ResumeParser(load_openai_key())
+    parsed_cv = parser.query_resume(file)
+    return parsed_cv
 
 
 def load_lottieurl(url: str):
@@ -75,38 +85,22 @@ def main():
                 loading_text = st.empty()
                 loading_text.write("*Matching your CV to offers ...*")
 
+            parsed_cv = parse_pdf(uploaded_file)
+
             job_matching_engine = prepare_matching_engine()
             distances, job_offers = job_matching_engine.match_jobs(
-                "Software engineer", k=1000
+                str(parsed_cv), k=1000
             )
             scores = [distance for distance in distances[0]]
             # Normalize scores to be between 0 and 100
             scores = [100 * (1 - score / max(scores)) for score in scores]
-
-            parsed_cv = parse_pdf(uploaded_file)
 
             expander = cv_parsed_holder.expander(
                 label=f"💡 **Transparency notice**: this is the information we have extracted from your CV.",
                 expanded=False,
             )
             with expander:
-                st.markdown(
-                    f"""
-                #### Skills
-                - Skill 1 
-                - Skill 2
-                #### Experience  
-                - Experience 1
-                - Experience 2
-                ### Education
-                
-                #### Languages
-                
-                #### Location
-                
-                #### Other          
-                """
-                )
+                st.write(parsed_cv)
 
             loading_text.empty()
 
