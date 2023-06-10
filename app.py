@@ -3,7 +3,7 @@ from streamlit_lottie import st_lottie_spinner, st_lottie
 import time
 import json
 import requests
-import job_description_embedding.notebooks.JobMatching as JobMatching
+import job_description_embedding.JobMatching as JobMatching
 
 LAYOUT_WIDE = False
 
