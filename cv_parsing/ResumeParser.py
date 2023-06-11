@@ -9,7 +9,7 @@ class ResumeParser:
         # set GPT-3 API key from the environment vairable
         openai.api_key = OPENAI_API_KEY
         # GPT-3 completion questions
-        self.prompt_questions = """Summarize the text below into a JSON with exactly the following structure {basic_info: {first_name, last_name, full_name, email, phone_number, location, portfolio_website_url, linkedin_url, github_main_page_url, university, education_level (BS, MS, or PhD), graduation_year, graduation_month, majors, GPA}, work_experience: [{job_title, company, location, duration, job_summary}], project_experience:[{project_name, project_discription}]}
+        self.prompt_questions = """Summarize the text below into a JSON with exactly the following structure {basic_info: {location, portfolio_website_url, linkedin_url, github_main_page_url, university, education_level (BS, MS, or PhD), graduation_year, graduation_month, majors, GPA, languages}, project_experience:[{project_name, project_discription}], work_experience: [{experience_level, job_title, company, location, duration, job_summary}]}
 """
 
     # Extract the content of a pdf file to string.
