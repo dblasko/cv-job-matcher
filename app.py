@@ -86,14 +86,10 @@ def main():
                 loading_text.write("*Matching your CV to offers ...*")
 
             parsed_cv = parse_pdf(uploaded_file)
+            # recommendations = matcher.match(parsed_cv)
 
             job_matching_engine = prepare_matching_engine()
-            distances, job_offers = job_matching_engine.match_jobs(
-                str(parsed_cv), k=1000
-            )
-            scores = [distance for distance in distances[0]]
-            # Normalize scores to be between 0 and 100
-            scores = [100 * (1 - score / max(scores)) for score in scores]
+            scores, job_offers = job_matching_engine.match_jobs(str(parsed_cv), k=1000)
 
             expander = cv_parsed_holder.expander(
                 label=f"💡 **Transparency notice**: this is the information we have extracted from your CV.",

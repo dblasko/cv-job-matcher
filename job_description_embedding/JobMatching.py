@@ -86,7 +86,11 @@ class JobMatching:
             query_result.reshape(1, -1).astype(np.float32), k
         )
 
-        return (distances, [self.strings[neighbor] for neighbor in neighbors[0]])
+        scores = [distance for distance in distances[0]]
+        # Normalize scores to be between 0 and 100
+        scores = [100 * (1 - score / max(scores)) for score in scores]
+
+        return (scores, [self.strings[neighbor] for neighbor in neighbors[0]])
 
     def save_embeddings(
         self,
