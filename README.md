@@ -16,5 +16,6 @@ streamlit run app.py
 ```
 The application will pop up in your default browser and using it should be straightforward: you can upload any CV in PDF format and the application will return a list of jobs that matches the CV, along with scores and improvement recommendations for the jobs dynamically. This works after the preprocessed data has been generated, if you don't have the preprocessed data, refer to the "Generating the preprocessed job data" section.
 
+TODO: dependencies, generating preprocessed job data...
 
 ## Generating the preprocessed job data

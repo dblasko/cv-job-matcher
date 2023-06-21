@@ -79,7 +79,7 @@ class JobMatchingBaseline:
         index.add(self.embeddings)
         self.index = index
 
-    def match_jobs(self, query, k=5):
+    def match_jobs(self, query, openai_key, k=5):
         query_result = self.embedder.embed_query(query)
         query_result = np.array(query_result)
         distances, neighbors = self.index.search(

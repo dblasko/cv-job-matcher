@@ -5,6 +5,7 @@ import json
 import yaml
 import requests
 import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
+import job_description_embedding.JobMatchingFineGrained as JobMatchingFineGrained
 import cv_parsing.ResumeParser as ResumeParser
 
 LAYOUT_WIDE = False
@@ -24,9 +25,13 @@ def prepare_matching_engines():
         "job_description_embedding/embeddings/saved_embeddings.pkl"
     )
     baseline.create_embedding_index()
+
+    finegrained = JobMatchingFineGrained.JobMatchingFineGrained(None)
+    finegrained.load_embeddings()
     # TODO: prepare other engines
     engines = {
         BASELINE_ENGINE: baseline,
+        FINE_GRAINED_ENGINE: finegrained,
     }
     return engines
 
@@ -40,7 +45,7 @@ def load_openai_key():
 # Dummy functions for parsing and matching. You can replace them with your actual implementations.
 def parse_pdf(file):
     parser = ResumeParser.ResumeParser(load_openai_key())
-    parsed_cv = parser.query_resume(file)
+    parsed_cv = parser.pdf2string(file)
     return parsed_cv
 
 
@@ -110,7 +115,9 @@ def main():
 
             job_matching_engines = prepare_matching_engines()
             job_matching_engine = job_matching_engines[selected_engine]
-            scores, job_offers = job_matching_engine.match_jobs(str(parsed_cv), k=1000)
+            scores, job_offers = job_matching_engine.match_jobs(
+                str(parsed_cv), load_openai_key(), k=1000
+            )
 
             expander = cv_parsed_holder.expander(
                 label=f"💡 **Transparency notice**: this is the information we have extracted from your CV.",

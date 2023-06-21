@@ -9,7 +9,7 @@ class ResumeParser:
         # set GPT-3 API key from the environment vairable
         openai.api_key = OPENAI_API_KEY
         # GPT-3 completion questions
-        self.prompt_questions = """Summarize the text below into a JSON with exactly the following structure {basic_info: {location, portfolio_website_url, linkedin_url, github_main_page_url, university, education_level (BS, MS, or PhD), graduation_year, graduation_month, majors, GPA, languages}, project_experience:[{project_name, project_discription}], work_experience: [{experience_level, job_title, company, location, duration, job_summary}]}
+        self.prompt_questions = """Summarize the text below into a JSON with exactly the following structure {basic_info: {location, portfolio_website_url, linkedin_url, github_main_page_url, university, education_level (BS, MS, or PhD), graduation_year, graduation_month, majors, GPA, languages (a list of languages), skills (a list of skills)}, project_experience:[{project_name, project_discription}], work_experience: [{experience_level, job_title, company, location, duration, job_summary}]}
 """
 
     # Extract the content of a pdf file to string.
@@ -53,15 +53,16 @@ class ResumeParser:
 
     # Query GPT-3 for the work experience and / or basic information from the resume at the PDF file path.
 
-    def query_resume(self: object, pdf) -> dict:
+    def query_resume(self: object, pdf_str) -> dict:
         resume = {}
-        pdf_str = self.pdf2string(pdf)
+        # pdf_str = self.pdf2string(pdf)
         # print(pdf_str)
         prompt = self.prompt_questions + "\n" + pdf_str
-        max_tokens = 4097 - 864
+        max_tokens = 4090 - 864
         engine = "text-davinci-002"
-        # response = self.query_completion(prompt, engine=engine, max_tokens=max_tokens)
-        # response_text = response["choices"][0]["text"].strip()
+        response = self.query_completion(prompt, engine=engine, max_tokens=max_tokens)
+        response_text = response["choices"][0]["text"].strip()
         # print(response_text)
-        # resume = json.loads(response_text)
-        return pdf_str
+        resume = json.loads(response_text)
+        # print(resume)
+        return resume
