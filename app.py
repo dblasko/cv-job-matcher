@@ -4,20 +4,31 @@ import time
 import json
 import yaml
 import requests
-import job_description_embedding.JobMatching as JobMatching
+import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
 import cv_parsing.ResumeParser as ResumeParser
 
 LAYOUT_WIDE = False
 
+BASELINE_ENGINE = "Baseline - embedding full content"
+IDEAL_ENGINE = "GPT Generated ideal job is matched to jobs"
+FINE_GRAINED_ENGINE = (
+    "Fine-grained - corresponding information of CV/job is matched & weighted in score"
+)
+FINE_GRAINED_IDEAL_ENGINE = "Fine-grained + GPT ideal job"
+
 
 @st.cache_resource
-def prepare_matching_engine():
-    job_matching_engine = JobMatching.JobMatching(None)
-    job_matching_engine.load_embeddings(
+def prepare_matching_engines():
+    baseline = JobMatchingBaseline.JobMatchingBaseline(None)
+    baseline.load_embeddings(
         "job_description_embedding/embeddings/saved_embeddings.pkl"
     )
-    job_matching_engine.create_embedding_index()
-    return job_matching_engine
+    baseline.create_embedding_index()
+    # TODO: prepare other engines
+    engines = {
+        BASELINE_ENGINE: baseline,
+    }
+    return engines
 
 
 def load_openai_key():
@@ -67,6 +78,15 @@ def main():
         uploaded_file = st.file_uploader("Upload your CV (PDF format)", type=["pdf"])
         if not LAYOUT_WIDE:
             cv_parsed_holder = st.empty()
+        selected_engine = st.selectbox(
+            "Select a recommendation engine",
+            [
+                BASELINE_ENGINE,
+                IDEAL_ENGINE,
+                FINE_GRAINED_ENGINE,
+                FINE_GRAINED_IDEAL_ENGINE,
+            ],
+        )
         match_threshold = st.slider(
             "Minimum match percentage to consider",
             min_value=0,
@@ -88,7 +108,8 @@ def main():
             parsed_cv = parse_pdf(uploaded_file)
             # recommendations = matcher.match(parsed_cv)
 
-            job_matching_engine = prepare_matching_engine()
+            job_matching_engines = prepare_matching_engines()
+            job_matching_engine = job_matching_engines[selected_engine]
             scores, job_offers = job_matching_engine.match_jobs(str(parsed_cv), k=1000)
 
             expander = cv_parsed_holder.expander(

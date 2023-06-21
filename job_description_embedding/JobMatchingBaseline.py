@@ -9,7 +9,7 @@ from langchain.embeddings import HuggingFaceEmbeddings
 # from dotenv import load_dotenv
 
 
-class JobMatching:
+class JobMatchingBaseline:
     def __init__(self, embeddings: HuggingFaceEmbeddings):
         self.embedder = HuggingFaceEmbeddings()
         # load_dotenv()  # Load environment variables from .env file
