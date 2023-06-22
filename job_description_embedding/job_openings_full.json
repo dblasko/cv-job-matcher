@@ -1,34 +1,16 @@
 [
     {
         "education": null,
-        "experience": "Preferably, you have 2 years of restaurant or bar experience.",
+        "experience": "2 years of restaurant or bar experience",
         "salary": null,
-        "requiredlanguages": null,
-        "requiredskills": "Exceptional time management, attention to detail, and guest service skills."
+        "requiredLanguages": null,
+        "requiredSkills": "time management, attention to detail, and guest service skills"
     },
     {
-        "education": "Bachelors degree or equivalent real-life experience",
-        "experience": "3+ years of IAM Experience\n3+ years of IT experience",
+        "education": "High School Diploma/GED",
+        "experience": "3+ years",
         "salary": null,
-        "requiredlanguages": null,
-        "requiredskills": [
-            "Understanding of core IT service and support practices",
-            "High degree of integrity and trust along with the ability to work independently",
-            "Strong policy and process knowledge, IT auditing skills and expertise to deal with a variety of technologies and customers",
-            "Ability to identify security risks and escalate where appropriate",
-            "Demonstrated exceptional organization, troubleshooting and documentation skills",
-            "Proven interpersonal and consultative skills to achieve security goals including ability to communicate well with IT teams and customer, both written and verbally",
-            "Working knowledge of ITIL processes (Foundations certification preferred)",
-            "Experience with IT Service Management Tools (ServiceNow preferred)",
-            "Experience administering the following: Active Directory, Quest Active Roles, Quest Change Auditor, LDAP, SAP, RSA",
-            "Intermediate level PowerShell and scripting skills"
-        ]
-    },
-    {
-        "education": "MD with additional training in one or more of the following areas: infectious disease, public health, epidemiology, vaccinology, clinical development, or closely related field",
-        "experience": "At least 5 years of experience in a relevant field such as vaccinology, epidemiology, infectious diseases, or public health",
-        "salary": "The annual base salary for this position ranges from $219,600.00 to $365,800.00.",
-        "requiredlanguages": "Fluent in English writing, reading, speaking",
-        "requiredskills": "Ability to discuss scientific aspects of vaccines such as development, safety, implementation, decision-making processes, etc., Scientific expertise as demonstrated by lead or senior authorship of at least 5 peer-reviewed publications in English, Expertise in vaccines and immunization programs with an established international KOL network; maternal immunization program experience highly preferred, strong interpersonal skills, demonstrated strong work ethic, and proven track record of delivering high quality products within timelines"
+        "requiredLanguages": null,
+        "requiredSkills": "IAM, IT, Active Directory, LDAP, SAP, RSA, PowerShell, ITIL, ServiceNow"
     }
 ]
