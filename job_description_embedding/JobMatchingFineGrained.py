@@ -61,7 +61,6 @@ class JobMatchingFineGrained:
             strings = json.load(f)
             self.strings = strings
 
-        # TODO: gen an index for each type, store embeddings of all jobs that section to one file
         # 1. For each json obj, refactor to new json w/ the fields (combine info)
         # 2. Iterate through all field keys -> create embeddings for each field IF NOT NULL, if NULL -> 0 vector & detect it at matching
         # 3. Create index for each field
