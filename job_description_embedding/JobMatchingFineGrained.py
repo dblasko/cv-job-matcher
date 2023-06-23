@@ -58,7 +58,7 @@ class JobMatchingFineGrained:
         with open(json_file, "r") as f:
             data = json.load(f)
 
-        with open("job_description_embedding/job_openings.json", "r") as f:
+        with open("job_description_embedding/job_openings_completed.json", "r") as f:
             strings = json.load(f)
             self.strings = strings
 
@@ -110,19 +110,19 @@ class JobMatchingFineGrained:
                 )
                 if obj["experience"] is not None
                 else "",
-                "requiredlanguages": " ".join(
-                    [str(obj["requiredlanguages"])]
-                    if not isinstance(obj["requiredlanguages"], list)
-                    else obj["requiredlanguages"]
+                "requiredLanguages": " ".join(
+                    [str(obj["requiredLanguages"])]
+                    if not isinstance(obj["requiredLanguages"], list)
+                    else obj["requiredLanguages"]
                 )
-                if obj["requiredlanguages"] is not None
+                if "requiredLanguages" in obj and obj["requiredLanguages"] is not None
                 else "",
-                "requiredskills": " ".join(
+                "requiredSkills": " ".join(
                     [str(obj["requiredskills"])]
-                    if not isinstance(obj["requiredskills"], list)
-                    else obj["requiredskills"]
+                    if not isinstance(obj["requiredSkills"], list)
+                    else obj["requiredSkills"]
                 )
-                if obj["requiredskills"] is not None
+                if "requiredSkills" in obj and obj["requiredSkills"] is not None
                 else "",
             }
             new_data.append(new_obj)
@@ -138,10 +138,10 @@ class JobMatchingFineGrained:
             [obj["experience"] for obj in new_data]
         )
         requiredlanguages = self.embedder.embed_documents(
-            [obj["requiredlanguages"] for obj in new_data]
+            [obj["requiredLanguages"] for obj in new_data]
         )
         requiredskills = self.embedder.embed_documents(
-            [obj["requiredskills"] for obj in new_data]
+            [obj["requiredSkills"] for obj in new_data]
         )
 
         # Save embeddings
@@ -201,8 +201,8 @@ class JobMatchingFineGrained:
             "body",
             "education",
             "experience",
-            "requiredlanguages",
-            "requiredskills",
+            "requiredLanguages",
+            "requiredSkills",
         ]:
             directory = os.path.join(
                 os.getcwd(), "job_description_embedding/embeddings/fine_grained"
@@ -217,7 +217,7 @@ class JobMatchingFineGrained:
             indexes[key] = index
         self.indexes = indexes
 
-        with open("job_description_embedding/job_openings.json", "r") as f:
+        with open("job_description_embedding/job_openings_completed.json", "r") as f:
             strings = json.load(f)
         self.strings = strings
 
@@ -306,9 +306,9 @@ class JobMatchingFineGrained:
     def match_jobs(self, query, openai_key, k=5):
         # TODO: call generate json from it
         # TODO: extract same meta-fields, embed each -> for each compute SCORE -> weighted mean score each posting, order them, return
-        # p = ResumeParser.ResumeParser(openai_key)
-        # cv_json = p.query_resume(query)
-        cv_json = self.__cv_to_json(query)
+        p = ResumeParser.ResumeParser(openai_key)
+        cv_json = p.query_resume(query)
+        # cv_json = self.__cv_to_json(query)
         cv_meta_json = {
             "job": " ".join(
                 [
@@ -342,14 +342,14 @@ class JobMatchingFineGrained:
                     for el in cv_json["work_experience"]
                 ]
             ),
-            "requiredlanguages": " ".join(
+            "requiredLanguages": " ".join(
                 ""
                 if "languages" not in cv_json["basic_info"]
                 or cv_json["basic_info"]["languages"] is None
                 or len(cv_json["basic_info"]["languages"]) == 0
                 else cv_json["basic_info"]["languages"]
             ),
-            "requiredskills": "".join(
+            "requiredSkills": "".join(
                 [
                     "" if el["job_summary"] is None else el["job_summary"]
                     for el in cv_json["work_experience"]
@@ -393,8 +393,8 @@ class JobMatchingFineGrained:
                 + scores["body"] * 0.1  # used to be 0.1
                 + scores["education"] * 0.2
                 + scores["experience"] * 0.2
-                + scores["requiredlanguages"] * 0.1
-                + scores["requiredskills"] * 0.2
+                + scores["requiredLanguages"] * 0.1
+                + scores["requiredSkills"] * 0.2
             )
 
         sorted_keys = sorted(weighted_scores, key=weighted_scores.get, reverse=True)
