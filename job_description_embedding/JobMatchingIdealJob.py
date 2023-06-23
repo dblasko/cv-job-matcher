@@ -1,12 +1,14 @@
 import os
 import json
+import hashlib
+import re
+
 from json.decoder import JSONDecodeError
-import numpy as np
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.chat_models.base import BaseChatModel
 from langchain import PromptTemplate
-import hashlib
-import re
+import numpy as np
+
 from job_description_embedding.JobMatchingBaseline import JobMatchingBaseline
 from printer import eprint
 
@@ -16,26 +18,26 @@ from printer import eprint
 
 class JobMatchingIdealJob(JobMatchingBaseline):
     def __init__(
-            self,
-            embeddings: HuggingFaceEmbeddings, 
-            llm: BaseChatModel, cache_dir: str='.query_cache', 
-            ideal_job_fields=[
-                    'title'
-                    'company',
-                    'posted_date',
-                    'body',
-                    'city',
-                    'state',
-                    'country',
-                    'location',
-                    'function',
-                    'jobtype',
-                    'education',
-                    'experience',
-                    'salary',
-                    'requiredlanguages',
-                    'requiredskills'
-                ],
+            self, 
+            llm: BaseChatModel,
+            embeddings: HuggingFaceEmbeddings=None,
+            cache_dir: str='.query_cache', 
+            ideal_job_fields={
+                'title': None,
+                'company': 'appropriate company or industry',
+                'body': 'brief job summary',
+                'city': None,
+                'state': None,
+                'country': None,
+                'location': 'from candidate\'s preference or CV',
+                'function': None,
+                'jobtype': None,
+                'education': None,
+                'experience': None,
+                'salary': None,
+                'requiredlanguages': 'from CV',
+                'requiredskills': 'from CV'
+            },
             job_fields=[
             'title',
             'company',
@@ -57,7 +59,7 @@ class JobMatchingIdealJob(JobMatchingBaseline):
             'requiredlanguages',
             'requiredskills'
             ]
-            ):
+        ):
         super().__init__(embeddings=embeddings)
         self.llm = llm
         self.cache_dir = cache_dir
@@ -65,10 +67,11 @@ class JobMatchingIdealJob(JobMatchingBaseline):
         self.job_fields = job_fields
 
         self.prompt = PromptTemplate.from_template(
-            '{cv}\nWhat would the Ideal job for this CV look like ? Extract the information in this CV into a valid flatt JSON object, parsable by json.loads().' +\
-                ' The JSON represents a job and consists of the fields ' + ', '.join(ideal_job_fields) + \
-                ' and fill in their content from this CV. Set the variable to null if the information is not derivable.' +\
-                ' Reply with just the JSON object, keep the attribute values short and if appropriate in keywords.'
+            'Analyze the following CV and transform the extracted information into an ideal job description for the candidate,' + \
+                ' assuming they are seeking to switch jobs or secure a new position. The output should be a valid JSON object that could be parsed by json.loads().' + \
+                ' Include: ' + ', '.join(f"{k} ({v})" if v else k for k,v in ideal_job_fields.items()) + '.' + \
+                ' Remember to use the information available in the CV, along with your general knowledge about the world, job markets, and companies, to make informed choices for each field.'+ \
+                ' If a field cannot be filled based on the information, set it to null. Please respond with just the JSON object.'
             )
 
     def match_jobs(self, query, k=5):
@@ -77,7 +80,7 @@ class JobMatchingIdealJob(JobMatchingBaseline):
             return (None, [])
         
         query_d = dict({k: None for k in self.job_fields if k not in query_d}, **query_d)
-        query_result = self.embedder.embed_query(query_d)
+        query_result = self.embedder.embed_query(json.dumps(query_d))
         query_result = np.array(query_result)
         distances, neighbors = self.index.search(
             query_result.reshape(1, -1).astype(np.float32), k
@@ -100,7 +103,8 @@ class JobMatchingIdealJob(JobMatchingBaseline):
         directory = os.path.join(os.getcwd(), self.cache_dir)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        file_path = os.path.join(directory, f'ideal_job_cv-{self.sha256(query).hexdigest()}' + ".json")
+        query_hash = self.sha256(query.encode('utf-8')).hexdigest()
+        file_path = os.path.join(directory, f'ideal_job_cv-{query_hash}' + ".json")
         
         if not os.path.exists(file_path):
             try:
@@ -115,5 +119,5 @@ class JobMatchingIdealJob(JobMatchingBaseline):
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as j:
                 return json.load(j)
-        
+
         return None

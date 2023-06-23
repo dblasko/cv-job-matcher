@@ -5,12 +5,13 @@ import json
 import yaml
 import requests
 
-from langchain.llms import FakeListLLM
 from langchain.chat_models import ChatOpenAI
+from langchain.callbacks import get_openai_callback
 
-import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
 import cv_parsing.ResumeParser as ResumeParser
+import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
 from job_description_embedding.JobMatchingIdealJob import JobMatchingIdealJob
+from job_description_embedding.CustomFakeLLM import CustomFakeLLM
 
 LAYOUT_WIDE = False
 FAKE_LLM = True
@@ -55,11 +56,14 @@ def prepare_matching_engines():
         "job_description_embedding/embeddings/saved_embeddings.pkl"
     )
     baseline.create_embedding_index()
-    
-    llm = FakeListLLM(responses=[_get_fake_job(i) for i in range(FAKE_REPONSE_COUNT)]) if FAKE_LLM \
+
+    llm = CustomFakeLLM(responses=[_get_fake_job(i) for i in range(FAKE_REPONSE_COUNT)]) if FAKE_LLM \
         else ChatOpenAI(openai_api_key=load_openai_key(), max_tokens=MAX_RESPONSE_TOKENS, model='gpt-3.5-turbo')
 
-    ideal_engine = JobMatchingIdealJob(embeddings=baseline.embeddings, llm=llm)
+    ideal_engine = JobMatchingIdealJob(llm=llm)
+    ideal_engine.load_embeddings(
+        "job_description_embedding/embeddings/saved_embeddings.pkl"
+    )
     ideal_engine.create_embedding_index()
     # TODO: prepare other engines
     engines = {
@@ -148,7 +152,10 @@ def main():
 
             job_matching_engines = prepare_matching_engines()
             job_matching_engine = job_matching_engines[selected_engine]
-            scores, job_offers = job_matching_engine.match_jobs(str(parsed_cv), k=1000)
+            scores, job_offers = None, []
+            with get_openai_callback() as call_logs:
+                scores, job_offers = job_matching_engine.match_jobs(str(parsed_cv), k=1000)
+                print(call_logs,'\n')
 
             expander = cv_parsed_holder.expander(
                 label=f"💡 **Transparency notice**: this is the information we have extracted from your CV.",
