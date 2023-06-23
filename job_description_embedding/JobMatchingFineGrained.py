@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 import collections
 from langchain.embeddings import HuggingFaceEmbeddings
+
 import cv_parsing.ResumeParser as ResumeParser
 
 
@@ -72,7 +73,6 @@ class JobMatchingFineGrained:
 
         new_data = []
         for obj in data:
-            # TODO: func call to get the json that extends the null fields
             # Useful fields: title, company, body, city, state, country, location, function, jobtype, education, experience, requiredlanguages, requiredskills
             new_obj = {
                 "job": " ".join(
@@ -95,19 +95,35 @@ class JobMatchingFineGrained:
                     ]
                 ),
                 "company": obj["company"] if obj["company"] is not None else "",
-                "body": obj["body"]
-                if obj["body"] is not None
-                else "",  # TODO: match CV to body & account it in weight
-                "education": obj["education"] if obj["education"] is not None else "",
-                "experience": obj["experience"]
+                "body": obj["body"] if obj["body"] is not None else "",
+                "education": " ".join(
+                    [str(obj["education"])]
+                    if not isinstance(obj["education"], list)
+                    else obj["education"]
+                )
+                if obj["education"] is not None
+                else "",
+                "experience": " ".join(
+                    [str(obj["experience"])]
+                    if not isinstance(obj["experience"], list)
+                    else obj["experience"]
+                )
                 if obj["experience"] is not None
-                else "",  # TODO: extract from body
-                "requiredlanguages": obj["requiredlanguages"]
+                else "",
+                "requiredlanguages": " ".join(
+                    [str(obj["requiredlanguages"])]
+                    if not isinstance(obj["requiredlanguages"], list)
+                    else obj["requiredlanguages"]
+                )
                 if obj["requiredlanguages"] is not None
-                else "",  # TODO: extract from body
-                "requiredskills": obj["requiredskills"]
+                else "",
+                "requiredskills": " ".join(
+                    [str(obj["requiredskills"])]
+                    if not isinstance(obj["requiredskills"], list)
+                    else obj["requiredskills"]
+                )
                 if obj["requiredskills"] is not None
-                else "",  # TODO: extract from body
+                else "",
             }
             new_data.append(new_obj)
 
@@ -209,54 +225,143 @@ class JobMatchingFineGrained:
         # DUMMY
         return json.loads(
             """
-            {"basic_info": {"location": "Champaign, IL", "university": "University of Illinois at Urbana-Champaign", "education_level": "PhD", "graduation_year": "2017", "graduation_month": "May", "majors": "English", "GPA": "summa cum laude"}, "project_experience": [{"project_name": "Down on the Farm: World War One and the Emergence of Literary Modernism in the American South", "project_description": "Committee: Margaret Black, Naomi Blue, John Jay, Robert Roberts (Chair)"}], "work_experience": [{"experience_level": "Instructor", "job_title": "Composition Instructor", "company": "Research Writing Program, University of Illinois", "location": "Champaign, IL", "duration": "2016-present", "job_summary": "Facilitator for seven sections of English composition."}, {"experience_level": "Instructor", "job_title": "Literature Instructor", "company": "Department of English, University of Illinois", "location": "Champaign, IL", "duration": "2015-present", "job_summary": "Instructor of record for two sections of literature, including Major American Authors and Introduction to Poetry per semester."}, {"experience_level": "Coordinating Group Leader", "job_title": "Coordinating Group Leader", "company": "Research Writing Program, University of Illinois", "location": "Champaign, IL", "duration": "2016-2018", "job_summary": "Planned and led required training session for teaching assistants and new composition teachers."}, {"experience_level": "Discussion Leader", "job_title": "Discussion Leader", "company": "Carolina Summer Reading Program, University of Illinois", "location": "Champaign, IL", "duration": "2017", "job_summary": "Led group discussion for first-year students on academic topics."}, {"experience_level": "Teaching Assistant", "job_title": "Teaching Assistant", "company": "Department of English, University of Illinois at Urbana-Champaign", "location": "Champaign, IL", "duration": "2018-2020", "job_summary": "Taught a section on film criticism, including film history, theory and technical vocabulary."}]}
+{
+  "basic_info": {
+    "location": null,
+    "portfolio_website_url": null,
+    "linkedin_url": "/in/daniel-blasko",
+    "github_main_page_url": null,
+    "university": "National Institute of Applied Sciences Lyon, France",
+    "education_level": "MS",
+    "graduation_year": 2023,
+    "graduation_month": null,
+    "majors": ["Data Science", "Computer Science"],
+    "GPA": null,
+    "languages": ["French", "Slovak", "English", "German"],
+    "skills": [
+      "Python",
+      "Data Science",
+      "Java",
+      "Android",
+      "JavaScript",
+      "PHP",
+      "C",
+      "C++",
+      "Linux",
+      "Windows",
+      "Docker",
+      "Computer Networks",
+      "SQL",
+      "MongoDB"
+    ]
+  },
+  "project_experience": [
+    {
+      "project_name": "INTERDISCIPLINARY PROJECT",
+      "project_description": "IFT TU Wien – Vienna, Austria | MARCH-JULY 2023"
+    },
+    {
+      "project_name": "DATA SCIENCE FOR IoT SECURITY – INTERN",
+      "project_description": "Cisco - Lyon, France | MAY-SEPT. 2023"
+    }
+  ],
+  "work_experience": [
+    {
+      "experience_level": null,
+      "job_title": "CONSULTANT",
+      "company": "ETIC INSA Lyon (Junior business)",
+      "location": "Lyon, France",
+      "duration": "2020–2022",
+      "job_summary": "Understanding and formalizing client needs, conceiving and implementing mock-ups, exchanging with clients to support them in their IT projects."
+    },
+    {
+      "experience_level": "INTERN",
+      "job_title": "MOBILE DEVELOPMENT INTERN",
+      "company": "Worldline Global",
+      "location": "Lyon, France",
+      "duration": "JUNE-AUGUST 2021",
+      "job_summary": "Cross-platform development in Flutter for two mobile banking applications. Analyzed the current in a presentation and written article synthetizing the tradeoffs of a transition to Flutter for new projects."
+    },
+    {
+      "experience_level": "INTERN",
+      "job_title": "SOFTWARE DEVELOPMENT INTERN",
+      "company": "NatBraille & LIRIS lab",
+      "location": "remote",
+      "duration": "APRIL-JULY 2020",
+      "job_summary": "Modelled, specified, and implemented a pedagogical web application to teach Braille. Organized and led user interviews, specified the requirements and modelized the architecture. Implemented Braille application in PHP and JavaScript, with key emphasis on web accessibility."
+    },
+    {
+      "experience_level": "INTERNSHIP",
+      "job_title": "R&D INTERNSHIP",
+      "company": "Transchain",
+      "location": "Strasbourg, France",
+      "duration": "JULY-AUGUST 2019",
+      "job_summary": "Developed an API, multiple GUIs and different system scripts in Golang for Transchain’s blockchain in a scrumbased environment. Heavy usage of Docker containerization and creation of multiple continuous integration scripts. Ensured a high test-coverage for every project. The created tools are used by clients & internally."
+    }
+  ]
+}
             """
         )
 
     def match_jobs(self, query, openai_key, k=5):
         # TODO: call generate json from it
         # TODO: extract same meta-fields, embed each -> for each compute SCORE -> weighted mean score each posting, order them, return
-        p = ResumeParser.ResumeParser(openai_key)
-        cv_json = p.query_resume(query)
-        # cv_json = self.__cv_to_json(query)
+        # p = ResumeParser.ResumeParser(openai_key)
+        # cv_json = p.query_resume(query)
+        cv_json = self.__cv_to_json(query)
         cv_meta_json = {
             "job": " ".join(
                 [
-                    el["job_title"] + " " + el["job_summary"]
+                    ("" if el["job_title"] is None else (el["job_title"] + " "))
+                    + ("" if el["job_summary"] is None else el["job_summary"])
                     for el in cv_json["work_experience"]
                 ]
             ),
-            "location": cv_json["basic_info"]["location"],
+            "location": ""
+            if cv_json["basic_info"]["location"] is None
+            else cv_json["basic_info"]["location"],
             "company": " ".join([el["company"] for el in cv_json["work_experience"]]),
             "body": query,
-            "education": " ".join(
+            "education": ""
+            if cv_json["basic_info"]["university"] is None
+            and cv_json["basic_info"]["education_level"] is None
+            and cv_json["basic_info"]["majors"] is None
+            else " ".join(
                 [
                     cv_json["basic_info"]["university"],
                     cv_json["basic_info"]["education_level"],
-                    cv_json["basic_info"]["majors"],
+                    " ".join(cv_json["basic_info"]["majors"])
+                    if cv_json["basic_info"]["majors"] is not None
+                    else "",
                 ]
             ),
             "experience": " ".join(
                 [
-                    el["job_title"] + " " + el["job_summary"]
+                    ("" if el["job_title"] is None else (el["job_title"] + " "))
+                    + ("" if el["job_summary"] is None else el["job_summary"])
                     for el in cv_json["work_experience"]
                 ]
             ),
             "requiredlanguages": " ".join(
                 ""
-                if "langauges" not in cv_json["basic_info"]
+                if "languages" not in cv_json["basic_info"]
                 or cv_json["basic_info"]["languages"] is None
                 or len(cv_json["basic_info"]["languages"]) == 0
                 else cv_json["basic_info"]["languages"]
             ),
-            "requiredskills": " ".join(
-                [el["job_summary"] for el in cv_json["work_experience"]]
+            "requiredskills": "".join(
+                [
+                    "" if el["job_summary"] is None else el["job_summary"]
+                    for el in cv_json["work_experience"]
+                ]
                 if "skills" not in cv_json["basic_info"]
                 or cv_json["basic_info"]["skills"] is None
                 or len(cv_json["basic_info"]["skills"]) == 0
-                else cv_json["basic_info"]["skills"]
+                else " ".join(cv_json["basic_info"]["skills"])
             ),
         }
+
+        print(cv_meta_json)
 
         posting_scores = {}
         for key in cv_meta_json.keys():
@@ -265,13 +370,15 @@ class JobMatchingFineGrained:
             dists, neighbors = index.search(
                 query.reshape(1, -1).astype(np.float32), 1000
             )
-            print(dists[0])
             scores = [distance for distance in dists[0]]
             # Normalize scores to be between 0 and 100
             if max(scores) == 0:
                 scores = [0 for score in scores]
             else:
-                scores = [100 * (1 - score / max(scores)) for score in scores]
+                scores = [
+                    100 * (1 - score / max(scores)) if score != 0 else 0
+                    for score in scores
+                ]
             for ind, neighbor_id in enumerate(neighbors[0]):
                 if neighbor_id not in posting_scores:
                     posting_scores[neighbor_id] = {}
@@ -280,13 +387,13 @@ class JobMatchingFineGrained:
         weighted_scores = {}
         for key, scores in posting_scores.items():
             weighted_scores[key] = (
-                scores["job"] * 0.2
-                + scores["location"] * 0.1
-                + scores["company"] * 0.1
-                + scores["body"] * 0.1
-                + scores["education"] * 0.05
+                scores["job"] * 0.1
+                + scores["location"] * 0.05
+                + scores["company"] * 0.05
+                + scores["body"] * 0.1  # used to be 0.1
+                + scores["education"] * 0.2
                 + scores["experience"] * 0.2
-                + scores["requiredlanguages"] * 0.05
+                + scores["requiredlanguages"] * 0.1
                 + scores["requiredskills"] * 0.2
             )
 
@@ -300,5 +407,7 @@ class JobMatchingFineGrained:
 
 if __name__ == "__main__":
     engine = JobMatchingFineGrained(None)
-    # embeddings = engine.create_embeddings("job_description_embedding/job_openings.json")
+    embeddings = engine.create_embeddings(
+        "job_description_embedding/job_openings_completed.json"
+    )
     engine.load_embeddings()

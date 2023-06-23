@@ -111,6 +111,7 @@ def main():
                 loading_text.write("*Matching your CV to offers ...*")
 
             parsed_cv = parse_pdf(uploaded_file)
+            # print(parsed_cv)
             # recommendations = matcher.match(parsed_cv)
 
             job_matching_engines = prepare_matching_engines()
