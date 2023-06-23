@@ -60,6 +60,7 @@ def prepare_matching_engines():
         else ChatOpenAI(openai_api_key=load_openai_key(), max_tokens=MAX_RESPONSE_TOKENS, model='gpt-3.5-turbo')
 
     ideal_engine = JobMatchingIdealJob(embeddings=baseline.embeddings, llm=llm)
+    ideal_engine.create_embedding_index()
     # TODO: prepare other engines
     engines = {
         BASELINE_ENGINE: baseline,
