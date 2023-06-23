@@ -1,0 +1,16 @@
+[
+    {
+        "education": null,
+        "experience": "2 years of restaurant or bar experience",
+        "salary": null,
+        "requiredLanguages": null,
+        "requiredSkills": "time management, attention to detail, and guest service skills"
+    },
+    {
+        "education": "High School Diploma/GED",
+        "experience": "3+ years",
+        "salary": null,
+        "requiredLanguages": null,
+        "requiredSkills": "IAM, IT, Active Directory, LDAP, SAP, RSA, PowerShell, ITIL, ServiceNow"
+    }
+]
