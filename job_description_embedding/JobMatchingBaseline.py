@@ -100,6 +100,7 @@ class JobMatchingBaseline:
         saving_embeddings_directory: str = os.getenv("SAVING_EMBEDDINGS_DIRECTORY"),
     ) -> None:
         directory = os.path.join(os.getcwd(), saving_embeddings_directory)
+        print(directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
         file_path = os.path.join(directory, saving_embeddings_file_name + ".pkl")

@@ -4,11 +4,22 @@ import time
 import json
 import yaml
 import requests
+
+
+from langchain.chat_models import ChatOpenAI
+from langchain.callbacks import get_openai_callback
 import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
 import job_description_embedding.JobMatchingFineGrained as JobMatchingFineGrained
+
 import cv_parsing.ResumeParser as ResumeParser
+import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
+from job_description_embedding.JobMatchingIdealJob import JobMatchingIdealJob
+from job_description_embedding.CustomFakeLLM import CustomFakeLLM
 
 LAYOUT_WIDE = False
+FAKE_LLM = True
+FAKE_REPONSE_COUNT = 10000
+MAX_RESPONSE_TOKENS = 800
 
 BASELINE_ENGINE = "Baseline - embedding full content"
 IDEAL_ENGINE = "GPT Generated ideal job is matched to jobs"
@@ -18,6 +29,29 @@ FINE_GRAINED_ENGINE = (
 FINE_GRAINED_IDEAL_ENGINE = "Fine-grained + GPT ideal job"
 
 
+def _get_fake_job(counter: str):
+    return json.dumps({
+            'title': f'title-{counter}',
+            'company': f'company-{counter}',
+            'posted_date': f'posted_date-{counter}',
+            'job_reference': f'job_reference-{counter}',
+            'req_number': f'req_number-{counter}',
+            'url': f'url-{counter}',
+            'body': f'body-{counter}',
+            'city': f'city-{counter}',
+            'state': f'state-{counter}',
+            'country': f'country-{counter}',
+            'location': f'location-{counter}',
+            'function': f'function-{counter}',
+            'logo': f'logo-{counter}',
+            'jobtype': f'jobtype-{counter}',
+            'education': f'education-{counter}',
+            'experience': f'experience-{counter}',
+            'salary': f'salary-{counter}',
+            'requiredlanguages': f'requiredlanguages-{counter}',
+            'requiredskills': f'requiredskills-{counter}',
+        })
+
 @st.cache_resource
 def prepare_matching_engines():
     baseline = JobMatchingBaseline.JobMatchingBaseline(None)
@@ -26,11 +60,20 @@ def prepare_matching_engines():
     )
     baseline.create_embedding_index()
 
+    llm = CustomFakeLLM(responses=[_get_fake_job(i) for i in range(FAKE_REPONSE_COUNT)]) if FAKE_LLM \
+        else ChatOpenAI(openai_api_key=load_openai_key(), max_tokens=MAX_RESPONSE_TOKENS, model='gpt-3.5-turbo')
+
+    ideal_engine = JobMatchingIdealJob(llm=llm)
+    ideal_engine.load_embeddings(
+        "job_description_embedding/embeddings/saved_embeddings.pkl"
+    )
+    ideal_engine.create_embedding_index()
     finegrained = JobMatchingFineGrained.JobMatchingFineGrained(None)
     finegrained.load_embeddings()
     # TODO: prepare other engines
     engines = {
         BASELINE_ENGINE: baseline,
+        IDEAL_ENGINE: ideal_engine,
         FINE_GRAINED_ENGINE: finegrained,
     }
     return engines
@@ -116,9 +159,13 @@ def main():
 
             job_matching_engines = prepare_matching_engines()
             job_matching_engine = job_matching_engines[selected_engine]
-            scores, job_offers = job_matching_engine.match_jobs(
-                str(parsed_cv), load_openai_key(), k=1000
-            )
+
+            scores, job_offers = None, []
+            with get_openai_callback() as call_logs:
+                scores, job_offers = job_matching_engine.match_jobs(
+                  str(parsed_cv), load_openai_key(), k=1000
+                )
+                print(call_logs,'\n')
 
             expander = cv_parsed_holder.expander(
                 label=f"💡 **Transparency notice**: this is the information we have extracted from your CV.",

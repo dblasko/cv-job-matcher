@@ -29,7 +29,7 @@ class ResumeParser:
     def query_completion(
         self: object,
         prompt: str,
-        engine: str = "text-curie-001",
+        engine: str = 'gpt-3.5-turbo',
         temperature: float = 0.0,
         max_tokens: int = 100,
         top_p: int = 1,
@@ -39,9 +39,9 @@ class ResumeParser:
         estimated_prompt_tokens = int(len(prompt.split()) * 1.6)
         estimated_answer_tokens = 2049 - estimated_prompt_tokens
 
-        response = openai.Completion.create(
-            engine=engine,
-            prompt=prompt,
+        response = openai.ChatCompletion.create(
+            model=engine,
+            messages=[{'role': 'user', 'content': prompt}],
             temperature=temperature,
             max_tokens=min(4096 - estimated_prompt_tokens, max_tokens),
             top_p=top_p,
@@ -60,6 +60,7 @@ class ResumeParser:
         prompt = self.prompt_questions + "\n" + pdf_str
         max_tokens = 4090 - 864
         engine = "text-davinci-002"
+        #response_text = response["choices"][0]["message"]['content'].strip() # if we ant to use gpt 3.5-turbo
         response = self.query_completion(prompt, engine=engine, max_tokens=max_tokens)
         response_text = response["choices"][0]["text"].strip()
         # print(response_text)
