@@ -5,8 +5,11 @@ import json
 import yaml
 import requests
 
+
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks import get_openai_callback
+import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
+import job_description_embedding.JobMatchingFineGrained as JobMatchingFineGrained
 
 import cv_parsing.ResumeParser as ResumeParser
 import job_description_embedding.JobMatchingBaseline as JobMatchingBaseline
@@ -65,10 +68,13 @@ def prepare_matching_engines():
         "job_description_embedding/embeddings/saved_embeddings.pkl"
     )
     ideal_engine.create_embedding_index()
+    finegrained = JobMatchingFineGrained.JobMatchingFineGrained(None)
+    finegrained.load_embeddings()
     # TODO: prepare other engines
     engines = {
         BASELINE_ENGINE: baseline,
-        IDEAL_ENGINE: ideal_engine
+        IDEAL_ENGINE: ideal_engine,
+        FINE_GRAINED_ENGINE: finegrained,
     }
     return engines
 
@@ -82,7 +88,7 @@ def load_openai_key():
 # Dummy functions for parsing and matching. You can replace them with your actual implementations.
 def parse_pdf(file):
     parser = ResumeParser.ResumeParser(load_openai_key())
-    parsed_cv = parser.query_resume(file)
+    parsed_cv = parser.pdf2string(file)
     return parsed_cv
 
 
@@ -148,13 +154,17 @@ def main():
                 loading_text.write("*Matching your CV to offers ...*")
 
             parsed_cv = parse_pdf(uploaded_file)
+            # print(parsed_cv)
             # recommendations = matcher.match(parsed_cv)
 
             job_matching_engines = prepare_matching_engines()
             job_matching_engine = job_matching_engines[selected_engine]
+
             scores, job_offers = None, []
             with get_openai_callback() as call_logs:
-                scores, job_offers = job_matching_engine.match_jobs(str(parsed_cv), k=1000)
+                scores, job_offers = job_matching_engine.match_jobs(
+                  str(parsed_cv), load_openai_key(), k=1000
+                )
                 print(call_logs,'\n')
 
             expander = cv_parsed_holder.expander(
