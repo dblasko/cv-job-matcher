@@ -19,3 +19,8 @@ The application will pop up in your default browser and using it should be strai
 TODO: dependencies, generating preprocessed job data...
 
 ## Generating the preprocessed job data
+
+run `Job_description_embeddings.ipynb` to parse jobs and the body parsing. 
+If job_openings_completed.json exists or `REPARSE_JOBS` in notebook is true the notebook will use gpt-3.5-turbo to parse the body of the jobs into appropriate fields. 
+If an error occurs during parsing a specific job the fields will stay null and the job will additionally be written to the `job_openings_full_failed_{batch}.json`.
+You can find the batch files in `job_openings ` and the consolidated jobs in `job_openings_completed.json`.
