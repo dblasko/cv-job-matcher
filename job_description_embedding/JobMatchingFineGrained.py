@@ -62,15 +62,6 @@ class JobMatchingFineGrained:
             strings = json.load(f)
             self.strings = strings
 
-        # 1. For each json obj, refactor to new json w/ the fields (combine info)
-        # 2. Iterate through all field keys -> create embeddings for each field IF NOT NULL, if NULL -> 0 vector & detect it at matching
-        # 3. Create index for each field
-        # 4. Save embeddings to binary file, one per field (adapt save embeddings or here?)
-        # 5. Adapt load_embeddings
-        # 6. Adapt match_jobs
-        # 7. Test
-        # 8. Documentation
-
         new_data = []
         for obj in data:
             # Useful fields: title, company, body, city, state, country, location, function, jobtype, education, experience, requiredlanguages, requiredskills
@@ -221,91 +212,7 @@ class JobMatchingFineGrained:
             strings = json.load(f)
         self.strings = strings
 
-    def __cv_to_json(self, cv):
-        # DUMMY
-        return json.loads(
-            """
-{
-  "basic_info": {
-    "location": null,
-    "portfolio_website_url": null,
-    "linkedin_url": "/in/daniel-blasko",
-    "github_main_page_url": null,
-    "university": "National Institute of Applied Sciences Lyon, France",
-    "education_level": "MS",
-    "graduation_year": 2023,
-    "graduation_month": null,
-    "majors": ["Data Science", "Computer Science"],
-    "GPA": null,
-    "languages": ["French", "Slovak", "English", "German"],
-    "skills": [
-      "Python",
-      "Data Science",
-      "Java",
-      "Android",
-      "JavaScript",
-      "PHP",
-      "C",
-      "C++",
-      "Linux",
-      "Windows",
-      "Docker",
-      "Computer Networks",
-      "SQL",
-      "MongoDB"
-    ]
-  },
-  "project_experience": [
-    {
-      "project_name": "INTERDISCIPLINARY PROJECT",
-      "project_description": "IFT TU Wien – Vienna, Austria | MARCH-JULY 2023"
-    },
-    {
-      "project_name": "DATA SCIENCE FOR IoT SECURITY – INTERN",
-      "project_description": "Cisco - Lyon, France | MAY-SEPT. 2023"
-    }
-  ],
-  "work_experience": [
-    {
-      "experience_level": null,
-      "job_title": "CONSULTANT",
-      "company": "ETIC INSA Lyon (Junior business)",
-      "location": "Lyon, France",
-      "duration": "2020–2022",
-      "job_summary": "Understanding and formalizing client needs, conceiving and implementing mock-ups, exchanging with clients to support them in their IT projects."
-    },
-    {
-      "experience_level": "INTERN",
-      "job_title": "MOBILE DEVELOPMENT INTERN",
-      "company": "Worldline Global",
-      "location": "Lyon, France",
-      "duration": "JUNE-AUGUST 2021",
-      "job_summary": "Cross-platform development in Flutter for two mobile banking applications. Analyzed the current in a presentation and written article synthetizing the tradeoffs of a transition to Flutter for new projects."
-    },
-    {
-      "experience_level": "INTERN",
-      "job_title": "SOFTWARE DEVELOPMENT INTERN",
-      "company": "NatBraille & LIRIS lab",
-      "location": "remote",
-      "duration": "APRIL-JULY 2020",
-      "job_summary": "Modelled, specified, and implemented a pedagogical web application to teach Braille. Organized and led user interviews, specified the requirements and modelized the architecture. Implemented Braille application in PHP and JavaScript, with key emphasis on web accessibility."
-    },
-    {
-      "experience_level": "INTERNSHIP",
-      "job_title": "R&D INTERNSHIP",
-      "company": "Transchain",
-      "location": "Strasbourg, France",
-      "duration": "JULY-AUGUST 2019",
-      "job_summary": "Developed an API, multiple GUIs and different system scripts in Golang for Transchain’s blockchain in a scrumbased environment. Heavy usage of Docker containerization and creation of multiple continuous integration scripts. Ensured a high test-coverage for every project. The created tools are used by clients & internally."
-    }
-  ]
-}
-            """
-        )
-
     def match_jobs(self, query, openai_key, k=5):
-        # TODO: call generate json from it
-        # TODO: extract same meta-fields, embed each -> for each compute SCORE -> weighted mean score each posting, order them, return
         p = ResumeParser.ResumeParser(openai_key)
         cv_json = p.query_resume(query)
         # cv_json = self.__cv_to_json(query)

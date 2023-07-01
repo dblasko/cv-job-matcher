@@ -1,4 +1,4 @@
-langchain==0.0.209
+langchain==0.0.220
 html2text==2020.1.16
 openai==0.27.8
 streamlit==1.23.1
@@ -6,3 +6,11 @@ streamlit-lottie==0.0.5
 faiss-cpu==1.7.4
 pdftotext==2.2.2
 sentence_transformers==2.2.2
+altair==5.0.1
+faiss-cpu==1.7.4
+pandas==2.0.2
+pdftotext==2.2.2
+Pympler==1.0.1
+pyparsing==3.0.9
+PyYAML==6.0
+tqdm==4.65.0

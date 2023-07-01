@@ -65,6 +65,7 @@ class JobMatchingBaseline:
             strings.append(string)
 
         doc_result = self.embedder.embed_documents(strings)
+        self.embeddings = doc_result
 
         index = faiss.index_factory(len(doc_result[0]), "Flat")
         index.train(doc_result)
@@ -80,7 +81,6 @@ class JobMatchingBaseline:
         self.index = index
 
     def match_jobs(self, query, openai_key, k=5):
-        # query = """DANIEL BLASKO daniel.blasko@insa-lyon.fr /in/daniel-blasko EDUCATION MSc. - Data Science | University of Technology Vienna, Austria MEng. - Computer Science | National Institute of Applied Sciences Lyon, France Higher National Diploma - Computer Science | IUT Lyon 1, France Baccalaureate in Sciences – with distinction | Jean Sturm, Strasbourg, France | 2022-2024 | 2020-2023 | 2018-2020 | 2016-2018 PROFESSIONAL EXPERIENCES INTERDISCIPLINARY PROJECT | IFT TU Wien – Vienna, Austria | MARCH-JULY 2023 DATA SCIENCE FOR IoT SECURITY – INTERN | Cisco - Lyon, France | MAY-SEPT. 2023 CONSULTANT | ETIC INSA Lyon (Junior business) - Lyon, France | 2020–2022 MOBILE DEVELOPMENT INTERN | Worldline Global - Lyon, France | JUNE-AUGUST 2021 Research project at the institute for manufacturing engineering and photonic technologies. Experimental evaluation of industrial machine data extraction methods using different OPC-UA endpoint implementations and industrial edge devices on Siemens and FANUC machines. On-premise network data-analysis and modelling for identification and tracking of components on industrial IoT networks in the Cisco Cyber Vision product. Created client-dataset analysis and reporting tools and integrated machine-learning algorithms in the product for network component classification and clustering. Understanding and formalizing client needs, conceiving and implementing mock-ups, exchanging with clients to support them in their IT projects. Cross-platform development in Flutter for two mobile banking applications. Analyzed the current in a presentation and written article synthetizing the tradeoffs of a transition to Flutter for new projects. SOFTWARE DEVELOPMENT INTERN | NatBraille & LIRIS lab - remote| APRIL-JULY 2020 Modelled, specified, and implemented a pedagogical web application to teach Braille. Organized and led user interviews, specified the requirements and modelized the architecture. Implemented Braille application in PHP and JavaScript, with key emphasis on web accessibility. R&D INTERNSHIP | Transchain - Strasbourg, France | JULY-AUGUST 2019 Developed an API, multiple GUIs and different system scripts in Golang for Transchain’s blockchain in a scrumbased environment. Heavy usage of Docker containerization and creation of multiple continuous integration scripts. Ensured a high test-coverage for every project. The created tools are used by clients & internally. SKILLS Languages: Data Science tools: Frameworks: Practical Python experience with ScikitR (tidyverse) learn, Keras, PyTorch, Prolog (fuzzy logic) OpenCV & data Java: Swing, Spring visualization libraries. Android Data intensive computing: Dart (Flutter) AirFlow, Hadoop, Spark. JavaScript, PHP Knowledge graphs: C, C++ (systems & parallel programming) experience with Protégé, OpenRefine, GraphDB, KG embeddings. Systems: Databases: Linux Windows, MacOS Docker containerization Computer Networks: Deployment: Gitlab CI, Jenkins CI, Github actions SQL, PLSQL, MongoDB General networking theory, experience with industrial networking protocols. Languages: French – Native, C2 Slovak – Native, C2 English – TOEIC 990, C1 German – DSD2, C1 certificate"""
         query_result = self.embedder.embed_query(query)
         query_result = np.array(query_result)
         distances, neighbors = self.index.search(
@@ -95,9 +95,8 @@ class JobMatchingBaseline:
 
     def save_embeddings(
         self,
-        embeddings,
-        saving_embeddings_file_name: str = os.getenv("SAVING_EMBEDDINGS_FILE_NAME"),
-        saving_embeddings_directory: str = os.getenv("SAVING_EMBEDDINGS_DIRECTORY"),
+        saving_embeddings_file_name: str,
+        saving_embeddings_directory: str,
     ) -> None:
         directory = os.path.join(os.getcwd(), saving_embeddings_directory)
         print(directory)
@@ -107,7 +106,7 @@ class JobMatchingBaseline:
 
         # Save embeddings to binary file
         with open(file_path, "wb") as f:
-            pickle.dump(embeddings, f)
+            pickle.dump(self.embeddings, f)
 
     def load_embeddings(self, embeddings_path) -> HuggingFaceEmbeddings:
         print("CALLED")
@@ -120,3 +119,12 @@ class JobMatchingBaseline:
         with open("job_description_embedding/job_openings.json", "r") as f:
             strings = json.load(f)
         self.strings = strings
+
+
+if __name__ == "__main__":
+    engine = JobMatchingBaseline(None)
+    engine.create_embeddings("job_description_embedding/job_openings.json")
+    engine.save_embeddings(
+        "saved_embeddings",
+        "job_description_embedding/embeddings",
+    )

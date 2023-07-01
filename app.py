@@ -79,7 +79,6 @@ def prepare_matching_engines():
     ideal_engine.create_embedding_index()
     finegrained = JobMatchingFineGrained.JobMatchingFineGrained(None)
     finegrained.load_embeddings()
-    # TODO: prepare other engines
     engines = {
         BASELINE_ENGINE: baseline,
         IDEAL_ENGINE: ideal_engine,
