@@ -10,7 +10,7 @@ from langchain import PromptTemplate
 import numpy as np
 
 from job_description_embedding.JobMatchingBaseline import JobMatchingBaseline
-from printer import eprint
+from job_description_embedding.printer import eprint
 
 
 # from dotenv import load_dotenv
