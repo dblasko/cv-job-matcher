@@ -172,7 +172,7 @@ def main():
                 scores, job_offers = job_matching_engine.match_jobs(
                     str(parsed_cv), load_openai_key(), k=1000
                 )
-                print(call_logs, "\n")
+                print(call_logs)
 
             expander = cv_parsed_holder.expander(
                 label=f"💡 **Transparency notice**: this is the information we have extracted from your CV.",

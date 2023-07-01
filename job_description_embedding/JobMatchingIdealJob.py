@@ -73,10 +73,11 @@ class JobMatchingIdealJob(JobMatchingBaseline):
             + ", ".join(f"{k} ({v})" if v else k for k, v in ideal_job_fields.items())
             + "."
             + " Remember to use the information available in the CV, along with your general knowledge about the world, job markets, and companies, to make informed choices for each field."
-            + " If a field cannot be filled based on the information, set it to null. Please respond with just the JSON object."
+            + " If a field cannot be filled based on the information, set it to null. Please respond with just the JSON object. CV content: {cv}"
         )
 
     def match_jobs(self, query, openai_key, k=5):
+        print("HERE")
         query_d = self._get_ideal_job(query=query)
         if query_d is None:
             return (None, [])
@@ -122,9 +123,10 @@ class JobMatchingIdealJob(JobMatchingBaseline):
                     with open(file_path, "w", encoding="utf-8") as f:
                         json.dump(ideal_job, f)
             except Exception as err:
-                eprint("got exception:", err)
+                print("got exception:", err)
                 return None
         if os.path.exists(file_path):
+            print("la")
             with open(file_path, "r", encoding="utf-8") as j:
                 return json.load(j)
 
