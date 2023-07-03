@@ -9,11 +9,17 @@ IR-driven job matching based on your CV.
 Examples of how to install these dependencies on various platforms:
 - Ubuntu: `sudo apt-get install pkg-config poppler-utils`
 - Mac OS: `brew install pkg-config poppler`
-
-**Python dependencies:**
-The dependencies have been specified in a `requirements.txt` file. To install them, run the following command from the project root directory, ideally in a new envgironment:
+- Windows: This OS requires you to install the Microsoft Visual C++ build tools for the pdf-parsing package to work. You can download them from [here](https://visualstudio.microsoft.com/visual-cpp-build-tools/) by selecting *"Desktop development with C++ workload"*. Then install `pkg-config` by  downloading it from [here](https://sourceforge.net/projects/pkgconfiglite/files/latest/download), extracting the downloaded ZIP and copying the `pkg-config.exe` file to `C:\Program Files (x86)\pkgconfig\bin` (create the folder if it does not exist). Finally, add `C:\Program Files (x86)\pkgconfig\bin` to your `PATH` environment variable. You can run `pkg-config --version` to check that it is working. You then need to create a conda environment and run:
 ```bash
-pip install -r requirements.txt
+conda create -n recSys python==3.10
+conda activate recSys
+conda install -c conda-forge poppler
+```
+  
+**Python dependencies:**
+To install the python dependencies, run the following command from the project root directory, ideally in a new envgironment:
+```bash
+pip install langchain html2text openai streamlit streamlit-lottie pdftotext altair faiss-cpu pandas pympler pyparsing pyyaml tqdm sentence_transformers
 ```
 
 You need to **provide a valid OpenAI key in a `key.yaml` file at the root of the project**. It should have the following form:
@@ -26,7 +32,7 @@ A web-based interface is bundled with the project. Everything is run from that w
 ```bash
 streamlit run app.py
 ```
-The application will pop up in your default browser and using it should be straightforward: you can upload any CV in PDF format and the application will return a list of jobs that matches the CV, along with scores and improvement recommendations for the jobs dynamically. **This works after the preprocessed data has been generated, if you do not have the preprocessed data, refer to the "Generating the preprocessed job data" section**.
+The application will pop up in your default browser and using it should be straightforward: you can upload any CV in PDF format and the application will return a list of jobs that matches the CV, along with scores and improvement recommendations for the jobs dynamically. **This works after the preprocessed data has been generated, if you do not have the preprocessed data, refer to the "Generating the preprocessed job data" section.**.
 
 ## Generating the preprocessed job data
 
@@ -39,6 +45,7 @@ The locally create the embedding based on those files, run:
 python job_description_embedding/JobMatchingBaseline.py
 python job_description_embedding/JobMatchinFineGrained.py
 ```
+*On windows the sibling folder imports sometimes work differently, development was done on unix-based systems. If you get an import error for the second python command, please move the python file to the project root and run it there, then put it back in the job_description_embedding folder.*
 
 This results in a `job_description_embedding/embeddings` folder containing `saved_embeddings.pkl` and `fine_graind/...`. 
 
